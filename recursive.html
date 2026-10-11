@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>AP1：交互式二维分形</title>
+  <link rel="icon" href="data:,">
+  <style>
+    body { margin: 24px; font-family: system-ui, sans-serif; line-height: 1.6; }
+    h1 { font-size: 24px; }
+    .controls { display: flex; flex-wrap: wrap; gap: 16px; align-items: center; }
+    select { font: inherit; padding: 4px 8px; }
+    input[type="range"] { width: 150px; vertical-align: middle; }
+    output { display: inline-block; min-width: 2ch; }
+    #point-size-hint { margin: 8px 0; }
+    canvas { display: block; width: 600px; max-width: 100%; height: auto; border: 1px solid #bbb; }
+    #status { min-height: 26px; }
+    button { font: inherit; padding: 4px 10px; }
+    canvas { padding: 0; cursor: grab; user-select: none; }
+    canvas.is-dragging { cursor: grabbing; }
+    canvas:focus-visible { outline: 2px solid #555; outline-offset: 3px; }
+    #view-status { white-space: nowrap; overflow-x: auto; }
+  </style>
+</head>
+<body>
+  <h1>AP1：交互式二维分形</h1>
+  <p>混沌游戏与递归细分共用画布；保留点云、线框、实体及鼠标交互。</p>
+
+  <div class="controls">
+    <label for="generation-method">生成算法：
+      <select id="generation-method">
+        <option value="recursive" selected>递归细分</option>
+        <option value="chaos">混沌游戏</option>
+      </select>
+    </label>
+    <label for="render-mode">渲染模式：
+      <select id="render-mode">
+        <option value="points">点云</option>
+        <option value="lines">线框</option>
+        <option value="triangles" selected>实体</option>
+      </select>
+    </label>
+    <label for="recursion-depth">递归深度：
+      <select id="recursion-depth">
+        <option value="0">0</option>
+        <option value="1">1</option>
+        <option value="2">2</option>
+        <option value="3">3</option>
+        <option value="4" selected>4</option>
+        <option value="5">5</option>
+        <option value="6">6</option>
+      </select>
+    </label>
+    <label for="point-size">点大小：
+      <input id="point-size" type="range" min="1" max="12" step="1" value="4"
+             aria-describedby="point-size-hint">
+      <output id="point-size-value" for="point-size">4</output> 画布像素
+    </label>
+    <label for="color-scheme">配色：
+      <select id="color-scheme">
+        <option value="blue" selected>蓝白</option>
+        <option value="ember">橙黑</option>
+        <option value="purple">紫米白</option>
+      </select>
+    </label>
+    <button id="reset-view" type="button">恢复视图</button>
+  </div>
+
+  <div class="controls" style="margin-top: 12px;">
+    <label for="point-count">混沌游戏目标点数：
+      <input id="point-count" type="number" min="5000" max="50000" step="1" value="5000"
+             aria-describedby="algorithm-hint">
+    </label>
+    <button id="apply-point-count" type="button">应用点数并重新生成</button>
+    <button id="toggle-growth" type="button">继续</button>
+    <button id="restart-growth" type="button">从头播放（同一批点）</button>
+  </div>
+  <p id="algorithm-hint">混沌游戏仅绘制点云；选择线框或实体会切换为递归细分。</p>
+  <p><progress id="growth-progress" max="1" value="0" aria-label="点云生长进度"></progress>
+     <span id="growth-status">动画仅在点云模式可用。</span></p>
+  <p id="interaction-hint">画布内左键拖动平移、滚轮缩放（0.25～20 倍）；单击画布后按 1 / 2 / 3 切换点云 / 线框 / 实体。缩放以鼠标位置为中心。空格暂停／继续点云生长；输入框内不拦截按键。</p>
+  <p id="view-status">缩放：1.00×｜平移：(0.000, 0.000)</p>
+  <p id="point-size-hint">点大小仅影响点云，不改变顶点数量；配色适用于三种模式。</p>
+  <p id="status" role="status">正在初始化……</p>
+  <canvas id="gl-canvas" width="600" height="600" tabindex="0" aria-label="可拖动、缩放的分形画布" aria-describedby="interaction-hint">浏览器不支持 Canvas。</canvas>
+  <p><a href="./legacy-chaos.html">查看最初的混沌游戏静态示例</a></p>
+
+  <script id="vertex-shader" type="x-shader/x-vertex">#version 300 es
+in vec2 aPosition;
+uniform float uPointSize;
+uniform float uScale;
+uniform vec2 uTranslation;
+void main() {
+    vec2 position = aPosition * uScale + uTranslation;
+    gl_Position = vec4(position, 0.0, 1.0);
+    gl_PointSize = uPointSize;
+}
+  </script>
+
+  <script id="fragment-shader" type="x-shader/x-fragment">#version 300 es
+precision mediump float;
+uniform vec4 uColor;
+out vec4 fColor;
+void main() {
+    fColor = uColor;
+}
+  </script>
+
+  <!-- 沿用你现有的工具库和几何算法，不加载旧 render.js。 -->
+  <script src="./Common/initShaders.js"></script>
+  <script src="./geometry.js"></script>
+  <script src="./recursive-render.js"></script>
+  <script src="./recursive-interaction.js"></script>
+  <script src="./point-growth.js"></script>
+  <script src="./recursive-ui.js"></script>
+</body>
+</html>

@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>AP1 - Sierpinski 分形（早期静态示例）</title>
+</head>
+<body>
+    <h2>AP1：混沌游戏生成 Sierpinski 分形</h2>
+
+    <canvas id="gl-canvas" width="600" height="600">
+        浏览器不支持 Canvas。
+    </canvas>
+
+    <!-- 顶点着色器：决定顶点位置和点的大小 -->
+    <script id="vertex-shader" type="x-shader/x-vertex">
+#version 300 es
+in vec2 aPosition;
+
+void main() {
+    gl_Position = vec4(aPosition, 0.0, 1.0);
+    gl_PointSize = 2.0;
+}
+    </script>
+
+    <!-- 片元着色器：决定颜色 -->
+    <script id="fragment-shader" type="x-shader/x-fragment">
+#version 300 es
+precision mediump float;
+out vec4 fColor;
+
+void main() {
+    fColor = vec4(0.1, 0.5, 0.9, 1.0);
+}
+    </script>
+
+    <p><a href="./index.html">返回完整 AP1 应用</a></p>
+
+    <script src="./Common/initShaders.js"></script>
+    <script src="./geometry.js"></script>
+    <script src="./render.js"></script>
+</body>
+</html>
